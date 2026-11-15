@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#070a0c">
+    <title>Stroke signal — risk model</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Stroke signal home">
+        <span class="brand-mark" aria-hidden="true">s</span>
+        <span>stroke<span class="brand-light">signal</span></span>
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="#how-it-works">How it works</a>
+        <a class="nav-cta" href="#assessment">Start a check <span aria-hidden="true">↗</span></a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-glow" aria-hidden="true"></div>
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="status-dot"></span> A research model, made clearer</p>
+          <h1 id="hero-title">A clearer view<br>of <span>stroke risk.</span></h1>
+          <p class="hero-intro">Explore a model estimate and see which details moved its prediction. Thoughtful context for a conversation with your care team.</p>
+          <a class="button button-lime" href="#assessment">Explore the model <span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="ribbon-art" aria-hidden="true">
+          <div class="ribbon ribbon-one"></div>
+          <div class="ribbon ribbon-two"></div>
+          <div class="ribbon ribbon-three"></div>
+        </div>
+        <div class="hero-note">
+          <span class="note-index">01 / 03</span>
+          <p>Understand the signal.<br><strong>Keep the human in the loop.</strong></p>
+        </div>
+        <div class="hero-bottom">
+          <span>MODEL EXPLORER</span>
+          <span>NOT A MEDICAL DEVICE</span>
+        </div>
+      </section>
+
+      <section class="intro section-wrap" id="how-it-works">
+        <div class="section-kicker">01 — A little context</div>
+        <div class="intro-content">
+          <h2>Complex signals,<br><em>made more human.</em></h2>
+          <div class="intro-aside">
+            <p>This demo runs a trained model on the details you enter, then probes one feature at a time against the model’s reference profile.</p>
+            <p class="muted-copy">It is an educational estimate—not a diagnosis, screening test, or substitute for professional care.</p>
+          </div>
+        </div>
+        <div class="principles">
+          <div><span>01</span><strong>Enter the basics</strong><small>Ten model inputs, one place.</small></div>
+          <div><span>02</span><strong>See the model signal</strong><small>Probability and decision threshold.</small></div>
+          <div><span>03</span><strong>Explore the probe</strong><small>Feature-by-feature comparison.</small></div>
+        </div>
+      </section>
+
+      <section class="assessment" id="assessment">
+        <div class="section-wrap assessment-wrap">
+          <div class="section-kicker">02 — Model explorer</div>
+          <div class="assessment-heading">
+            <div>
+              <p class="eyebrow dark-eyebrow">YOUR DETAILS</p>
+              <h2>Build a snapshot.</h2>
+            </div>
+            <p>Use the values available to you. The model will compare this snapshot with its learned reference profile.</p>
+          </div>
+
+          <form method="post" action="#assessment" novalidate>
+            <div class="form-grid">
+              {% for name, field in fields.items() %}
+                <div class="form-field{% if errors.get(name) %} has-error{% endif %}">
+                  <label for="{{ name }}">{{ field.label }} <span class="required-mark" aria-hidden="true">*</span></label>
+                  {% if field.type == "select" %}
+                    <select id="{{ name }}" name="{{ name }}" required aria-describedby="{{ name }}-error">
+                      <option value="">Choose an option</option>
+                      {% for value, label in field.choices %}
+                        <option value="{{ value }}" {% if values.get(name, '')|string == value %}selected{% endif %}>{{ label }}</option>
+                      {% endfor %}
+                    </select>
+                  {% else %}
+                    <div class="input-shell">
+                      <input id="{{ name }}" name="{{ name }}" type="number" min="{{ field.min }}" max="{{ field.max }}" step="{{ field.step }}" value="{{ values.get(name, '') }}" required aria-describedby="{{ name }}-error">
+                      {% if field.suffix %}<span>{{ field.suffix }}</span>{% endif %}
+                    </div>
+                  {% endif %}
+                  <small class="field-error" id="{{ name }}-error">{{ errors.get(name, '') }}</small>
+                </div>
+              {% endfor %}
+            </div>
+            <div class="form-footer">
+              <p><span class="info-mark" aria-hidden="true">i</span> Your entries are used for this calculation and are not saved by this demo.</p>
+              <button class="button button-dark" type="submit">Run the model <span aria-hidden="true">↗</span></button>
+            </div>
+          </form>
+
+          {% if result %}
+            <section class="results" aria-labelledby="result-title" aria-live="polite">
+              <div class="result-topline">
+                <div>
+                  <p class="eyebrow dark-eyebrow">03 — MODEL OUTPUT</p>
+                  <h2 id="result-title">Model prediction.</h2>
+                </div>
+                <span class="result-badge {{ 'result-positive' if result.prediction_positive else 'result-negative' }}">
+                  Stroke prediction: {{ "Positive" if result.prediction_positive else "Negative" }}
+                </span>
+              </div>
+              <p class="classification-note">
+                The model {{ "predicts the stroke class for this profile" if result.prediction_positive else "does not predict the stroke class for this profile" }}
+                using its {{ "%.1f"|format(result.threshold * 100) }}% probability threshold. This is not a diagnosis and cannot tell whether someone is currently having a stroke.
+              </p>
+              <div class="result-grid">
+                <article class="probability-card">
+                  <p class="card-label">MODEL-ESTIMATED PROBABILITY</p>
+                  <div class="probability">{{ "%.1f"|format(result.probability * 100) }}<span>%</span></div>
+                  <div class="meter" role="img" aria-label="Model probability {{ '%.1f'|format(result.probability * 100) }} percent">
+                    <span style="width: {{ [result.probability * 100, 100]|min }}%"></span>
+                    <i style="left: {{ result.threshold * 100 }}%" title="Model threshold"></i>
+                  </div>
+                  <div class="meter-labels"><span>0%</span><span>Threshold {{ "%.1f"|format(result.threshold * 100) }}%</span><span>100%</span></div>
+                  <p class="card-footnote">This is the model’s estimated probability, not a person’s confirmed risk.</p>
+                </article>
+                <article class="probe-card">
+                  <div class="probe-heading">
+                    <div><p class="card-label">XAI PROBE</p><h3>What moved the signal?</h3></div>
+                    <span class="probe-tag">One feature at a time</span>
+                  </div>
+                  <p class="probe-description">Change versus the model’s median/mode reference. Positive means this input raised the model output relative to that reference.</p>
+                  <div class="impact-list">
+                    {% for item in result.impacts %}
+                      <div class="impact-row">
+                        <span>{{ item.label }}</span>
+                        <span class="impact-bar"><i class="{% if item.impact > 0 %}impact-up{% else %}impact-down{% endif %}" style="width: {{ [item.impact|abs * 600, 100]|min }}%"></i></span>
+                        <strong class="{% if item.impact > 0 %}text-up{% elif item.impact < 0 %}text-down{% endif %}">{{ "+" if item.impact > 0 else "" }}{{ "%.1f"|format(item.impact * 100) }} pp</strong>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </article>
+              </div>
+              <article class="recommendations">
+                <div class="recommendation-title">
+                  <span class="recommendation-icon" aria-hidden="true">↗</span>
+                  <div><p class="card-label">A NEXT STEP, NOT A DIAGNOSIS</p><h3>Suggestions to discuss</h3></div>
+                </div>
+                <div class="recommendation-list">
+                  {% for recommendation in result.recommendations %}
+                    <div><strong>{{ recommendation.title }}</strong><p>{{ recommendation.body }}</p></div>
+                  {% endfor %}
+                </div>
+              </article>
+              <p class="result-disclaimer"><strong>Important:</strong> The probe is a simple, one-feature-at-a-time comparison, not SHAP or a causal explanation. Features can interact, and this result cannot diagnose, rule out, or predict an individual stroke. If you think someone may be having a stroke, call emergency services immediately.</p>
+            </section>
+          {% endif %}
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">s</span><span>stroke<span class="brand-light">signal</span></span></a>
+      <p>Built for exploration. Never a replacement for medical care.</p>
+      <a href="#assessment">Back to the model ↑</a>
+    </footer>
+  </body>
+</html>
