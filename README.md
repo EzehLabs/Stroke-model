@@ -20,12 +20,12 @@ Open `http://127.0.0.1:5000`. Keep `stroke_model.joblib` in the project root bes
 ## Deploy on Render
 
 1. Push this project to a GitHub repository. Include `stroke_model.joblib` in the repository root beside `app.py`.
-2. In Render, choose **New → Blueprint**, connect the repository, and apply the `render.yaml` configuration. Alternatively, create a **Web Service** and use:
+2. In Render, choose **New → Blueprint**, connect the repository, and apply the `render.yaml` configuration. It explicitly selects the **Free** plan. Alternatively, create a **Web Service**, choose **Free** as its compute plan, and use:
    - Build command: `pip install -r requirements.txt`
    - Start command: `gunicorn app:app`
 3. Wait for the build and deploy to finish, then open the `onrender.com` URL Render provides.
 
-The `.python-version` file selects Python 3.12, and `requirements.txt` pins scikit-learn to the version used to save the model. This demo is not intended for real patient data or medical decision-making.
+The `.python-version` file selects Python 3.12, and `requirements.txt` pins scikit-learn to the version used to save the model. Free web services spin down after 15 minutes without traffic, so the first request after idle may take about a minute while the service starts. The deployed model file is part of the app; do not rely on the service filesystem to persist user data. Free instances are intended for demos and hobby projects, not production or medical decision-making.
 
 ## Tests
 
